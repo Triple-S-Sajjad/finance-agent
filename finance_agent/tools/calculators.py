@@ -36,7 +36,27 @@ def calculate_emi(args: dict) -> dict:
 
     total = emi * months
     return {
+        "currency": "USD",
         "monthly_payment": round(emi, 2),
         "total_paid": round(total, 2),
         "total_interest": round(total - principal, 2),
     }
+
+
+EMI_SCHEMA = {
+    "type": "function",
+    "function": {
+        "name": "calculate_emi",
+        "description": "Calculate the fixed monthly payment (EMI), total paid, and total "
+                       "interest for a loan. Use for any loan, mortgage, or financing payment question.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "principal": {"type": "number", "description": "Loan amount, e.g. 20000"},
+                "annual_rate_percent": {"type": "number", "description": "Annual interest rate in percent, e.g. 7 for 7%"},
+                "months": {"type": "integer", "description": "Loan term in months. Convert years to months (5 years = 60)."},
+            },
+            "required": ["principal", "annual_rate_percent", "months"],
+        },
+    },
+}
