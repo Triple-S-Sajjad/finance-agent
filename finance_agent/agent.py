@@ -1,4 +1,5 @@
 import json
+from finance_agent.log import log_event
 import ollama
 from finance_agent.tools.calculators import EMI_SCHEMA, calculate_emi, ToolArgError
 
@@ -22,6 +23,7 @@ class Agent:
 
     def ask(self, text: str) -> str:
         self.messages.append({"role": "user", "content": text})
+        log_event("user", {"text": text})
 
         for _ in range(MAX_STEPS):
             resp = ollama.chat(model=MODEL, messages=self.messages, tools=SCHEMAS,
@@ -30,10 +32,12 @@ class Agent:
             self.messages.append(msg)
 
             if not msg.tool_calls:          # no tool requested -> this is the final answer
+                log_event("answer", {"text": msg.content})
                 return msg.content
 
             for call in msg.tool_calls:     # run each requested tool, feed results back
                 result = self._run(call.function.name, call.function.arguments)
+                log_event("tool_call", {"name":call.function.name, "args": call.function.arguments, "result": result})
                 self.messages.append({"role": "tool", "tool_name": call.function.name,
                                       "content": json.dumps(result)})
 
